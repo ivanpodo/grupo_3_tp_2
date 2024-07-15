@@ -52,34 +52,30 @@
 #define QUEUE_AO_LED_ITEM_SIZE_         (sizeof(ao_led_message_t))
 #define LED_ON_PERIOD_MS_				(TickType_t)(1000U / portTICK_PERIOD_MS)
 
+#define WAIT_TIME   0U
+#define LED_ON_TIME 500U
+
 /********************** internal data declaration ****************************/
 
-ao_led_handle_t ao_led_red =
+ao_led_handle_t ao_led =
 				{
-					.info.port 	= LD3_GPIO_Port,
-					.info.pin 	= LD3_Pin,
-					.info.state = GPIO_PIN_RESET,
-					.info.colour = "RED"
-				};
+					.info[RED].port 	= LD3_GPIO_Port,
+					.info[RED].pin 	= LD3_Pin,
+					.info[RED].state = GPIO_PIN_RESET,
+					.info[RED].colour = "RED",
 
-ao_led_handle_t ao_led_green =
-				{
-					.info.port 	= LD1_GPIO_Port,
-					.info.pin 	= LD1_Pin,
-					.info.state = GPIO_PIN_RESET,
-					.info.colour = "GREEN"
-				};
-
-ao_led_handle_t ao_led_blue =
-				{
-					.info.port 	= LD2_GPIO_Port,
-					.info.pin 	= LD2_Pin,
-					.info.state = GPIO_PIN_RESET,
-					.info.colour = "BLUE"
+					.info[GREEN].port 	= LD1_GPIO_Port,
+					.info[GREEN].pin 	= LD1_Pin,
+					.info[GREEN].state = GPIO_PIN_RESET,
+					.info[GREEN].colour = "GREEN",
+					
+					.info[BLUE].port 	= LD2_GPIO_Port,
+					.info[BLUE].pin 	= LD2_Pin,
+					.info[BLUE].state = GPIO_PIN_RESET,
+					.info[BLUE].colour = "BLUE",
 				};
 
 /********************** internal functions declaration ***********************/
-static void ao_led_timer_cb_(TimerHandle_t pxTimer);
 
 /********************** internal data definition *****************************/
 
@@ -91,38 +87,35 @@ static void ao_task_(void *argument)
 {
   ao_led_handle_t *hao = (ao_led_handle_t *)argument;
 
-  LOGGER_INFO("AO LED %s started", hao->info.colour)
+  LOGGER_INFO("AO LED started")
 
   while (true)
   {
     ao_led_message_t msg;
 
-    LOGGER_INFO("LED %s\t- Waiting event", hao->info.colour);
+    LOGGER_INFO("AO LED \t- Waiting event");
 
-    if (pdPASS == xQueueReceive(hao->hqueue, &msg, portMAX_DELAY))
+	/* hacemos? bool ao_running = true */
+
+    while (pdPASS == xQueueReceive(hao->hqueue, &msg, portMAX_DELAY))
     {
-      GPIO_PinState led_state;
-
-      switch(msg)
-      {
-      case AO_LED_MESSAGE_ON:
-          led_state = GPIO_PIN_SET;
-          xTimerStart(hao->htimer, (TickType_t) 0U);
-          LOGGER_INFO("LED %s\t- Turn ON", hao->info.colour);
-    	  break;
-
-      case AO_LED_MESSAGE_OFF:
-          led_state = GPIO_PIN_RESET;
-          LOGGER_INFO("LED %s\t- Turn OFF", hao->info.colour);
-    	  break;
-
-      default:
-    	  LOGGER_INFO("LED %s\t- ERROR - bad led message", hao->info.colour);
-    	  break;
-      }
-
-      HAL_GPIO_WritePin(hao->info.port, hao->info.pin, led_state);
+      HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_SET);
+	  vTaskDelay(pdMS_TO_TICKS(LED_ON_TIME));
+      HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_RESET);
     }
+
+	LOGGER_INFO("AO LED - releasing memory");
+
+	/* hacemos? bool ao_running = false */
+	
+	/*
+	 * librar queue
+	 * asignar null al ptr
+	 * */
+
+	vTaskDelete(NULL);
+
+	/* No se ejecuta*/
   }
 }
 
@@ -130,101 +123,39 @@ static void ao_task_(void *argument)
 
 bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg)
 {
+	/* (verificar si )el ao esta corriendo
+	 * crear queue, reasignar puntero
+	 * asignar null al ptr
+	 * enviar evento a la cola
+	 * crear tarea, reasignar puntero
+	 * */
   return (pdPASS == xQueueSend(hao_led->hqueue, (void*)&msg, (TickType_t)0U));
 }
 
-void ao_leds_init(ao_led_handle_t* hao_led_red, ao_led_handle_t* hao_led_green, ao_led_handle_t* hao_led_blue)
+/*
+ * Hacemos init o no hace falta? porque si vamos a crear y destruir queue y task,
+ * no es requerido. Podemos utilizarlo en 'ao_led_send()
+ */
+
+void ao_leds_init(ao_led_handle_t* hao_led)
 {
   // Queues
-  hao_led_red->hqueue   = xQueueCreate(QUEUE_AO_LED_LENGTH_, QUEUE_AO_LED_ITEM_SIZE_);
-  hao_led_green->hqueue = xQueueCreate(QUEUE_AO_LED_LENGTH_, QUEUE_AO_LED_ITEM_SIZE_);
-  hao_led_blue->hqueue  = xQueueCreate(QUEUE_AO_LED_LENGTH_, QUEUE_AO_LED_ITEM_SIZE_);
-  configASSERT(NULL != hao_led_red->hqueue);
-  configASSERT(NULL != hao_led_green->hqueue);
-  configASSERT(NULL != hao_led_blue->hqueue);
-
-  // Timers
-  hao_led_red->htimer   = xTimerCreate
-		  	  	  	  	  (
-							  "timer_ao_led_red",
-							  LED_ON_PERIOD_MS_,
-							  false,
-							  hao_led_red,
-							  ao_led_timer_cb_
-		  	  	  	  	  );
-  configASSERT(NULL != hao_led_red->htimer);
-
-  hao_led_green->htimer = xTimerCreate
-						  (
-							  "timer_ao_led_green",
-							  LED_ON_PERIOD_MS_,
-							  false,
-							  hao_led_green,
-							  ao_led_timer_cb_
-						  );
-  configASSERT(NULL != hao_led_green->htimer);
-
-  hao_led_blue->htimer  = xTimerCreate
-						  (
-							  "timer_ao_led_blue",
-							  LED_ON_PERIOD_MS_,
-							  false,
-							  hao_led_blue,
-							  ao_led_timer_cb_
-						  );
-  configASSERT(NULL != hao_led_blue->htimer);
+  hao_led->hqueue = xQueueCreate(QUEUE_AO_LED_LENGTH_, QUEUE_AO_LED_ITEM_SIZE_);
+  configASSERT(NULL != hao_led->hqueue);
 
   // Tasks
   BaseType_t status;
   status = xTaskCreate
 		  (
 			  ao_task_,
-			  "task_ao_led_red",
+			  "task_ao_led",
 			  128,
-			  (void* const)hao_led_red,
+			  (void* const)hao_led,
 			  (tskIDLE_PRIORITY + 1),
-			  &hao_led_red->htask
+			  &hao_led->htask
 		  );
-  configASSERT(pdPASS == status);
 
-  status = xTaskCreate
-		  (
-			  ao_task_,
-			  "task_ao_led_green",
-			  128,
-			  (void* const)hao_led_green,
-			  (tskIDLE_PRIORITY + 1),
-			  &hao_led_green->htask
-		  );
-  configASSERT(pdPASS == status);
-
-  status = xTaskCreate
-		  (
-			  ao_task_,
-			  "task_ao_led_blue",
-			  128,
-			  (void* const)hao_led_blue,
-			  (tskIDLE_PRIORITY + 1),
-			  &hao_led_blue->htask
-	      );
   configASSERT(pdPASS == status);
 }
-
-static void ao_led_timer_cb_(TimerHandle_t pxTimer)
-{
-	ao_led_handle_t *hao_led = (ao_led_handle_t *)pvTimerGetTimerID(pxTimer);
-	ao_led_message_t evt = AO_LED_MESSAGE_OFF;
-	LOGGER_INFO("LED %s\t- Timer callback executed!", hao_led->info.colour);
-
-	xQueueSendFromISR(hao_led->hqueue, &evt, pdFALSE);
-}
-
-// We assume all tasks have the same priority level. If not, we should use
-// something like this:
-//
-// BaseType_t xHigherPriorityTaskWoken = pdTRUE;
-// xQueueSendFromISR( ... , ... , &xHigherPriorityTaskWoken);
-// portYIELD_FROM_ISR(xHigherPriorityTaskWoken); // Switch context if
-// argument is pdTRUE;
 
 /********************** end of file ******************************************/

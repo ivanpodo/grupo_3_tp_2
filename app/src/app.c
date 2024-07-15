@@ -56,9 +56,7 @@
 
 /********************** external data declaration *****************************/
 
-extern ao_led_handle_t ao_led_red;
-extern ao_led_handle_t ao_led_green;
-extern ao_led_handle_t ao_led_blue;
+extern ao_led_handle_t ao_led;
 
 extern ao_ui_handle_t  ao_ui;
 
@@ -81,7 +79,7 @@ void app_init(void)
   configASSERT(pdPASS == status);
 
   // Leds init
-  ao_leds_init(&ao_led_red, &ao_led_green, &ao_led_blue);
+  // ao_leds_init(&ao_led); // leer comentario ao_led.c::135
 
   // UI init
   ao_ui_init(&ao_ui);

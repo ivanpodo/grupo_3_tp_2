@@ -47,13 +47,19 @@ extern "C" {
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 /********************** macros ***********************************************/
-
+#define NUMBER_OF_LEDS 3U
 /********************** typedef **********************************************/
 typedef enum
 {
   AO_LED_MESSAGE_ON,
   AO_LED_MESSAGE_OFF,
   AO_LED_MESSAGE__N,
+} ao_led_msg_type_t;
+
+typedef struct 
+{
+  ao_led_msg_type_t type;
+  led_colour_t      colour;
 } ao_led_message_t;
 
 typedef struct
@@ -64,12 +70,19 @@ typedef struct
 	char 		  colour[10];
 } led_info_t;
 
+typedef enum
+{
+  RED   = 0U,
+  GREEN,
+  BLUE
+} led_colour_t;
+
 typedef struct
 {
     QueueHandle_t hqueue;
     TaskHandle_t  htask;
     TimerHandle_t htimer;
-    led_info_t	  info;
+    led_info_t	  info[NUMBER_OF_LEDS]; // use led_t to reference
 } ao_led_handle_t;
 
 /********************** external data declaration ****************************/
