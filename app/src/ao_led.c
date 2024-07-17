@@ -50,10 +50,9 @@
 /********************** macros and definitions *******************************/
 #define QUEUE_AO_LED_LENGTH_            (5)
 #define QUEUE_AO_LED_ITEM_SIZE_         (sizeof(ao_led_message_t))
-#define LED_ON_PERIOD_MS_				(TickType_t)(1000U / portTICK_PERIOD_MS)
+#define LED_ON_PERIOD_TICKS_			(TickType_t)(500U / portTICK_PERIOD_MS)
 
 #define WAIT_TIME   0U
-#define LED_ON_TIME 500U
 
 /********************** internal data declaration ****************************/
 
@@ -97,11 +96,24 @@ static void ao_task_(void *argument)
 
 	/* hacemos? bool ao_running = true */
 
-    while (pdPASS == xQueueReceive(hao->hqueue, &msg, portMAX_DELAY))
+    while (pdPASS == xQueueReceive(hao->hqueue, &msg, (TickType_t)0U))
     {
-      HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_SET);
-	  vTaskDelay(pdMS_TO_TICKS(LED_ON_TIME));
-      HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_RESET);
+		switch (msg.type)
+		{
+		case AO_LED_MESSAGE_ON:
+			HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_SET);
+			vTaskDelay(LED_ON_PERIOD_TICKS_);
+			HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_RESET);
+			break;
+
+		/*Intentional fallthrough*/
+		case AO_LED_MESSAGE_OFF:
+		case AO_LED_MESSAGE__N:
+		
+		default:
+			LOGGER_INFO("AO LED - bad ao message");
+			break;
+		}
     }
 
 	LOGGER_INFO("AO LED - releasing memory");
@@ -125,7 +137,6 @@ bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg)
 {
 	/* (verificar si )el ao esta corriendo
 	 * crear queue, reasignar puntero
-	 * asignar null al ptr
 	 * enviar evento a la cola
 	 * crear tarea, reasignar puntero
 	 * */

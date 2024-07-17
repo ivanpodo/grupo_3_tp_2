@@ -65,9 +65,9 @@ typedef struct
 typedef struct
 {
 	GPIO_TypeDef  *port;
-	uint16_t 	  pin;
+	uint16_t 	    pin;
 	GPIO_PinState state;
-	char 		  colour[10];
+	char 		      colour[10];
 } led_info_t;
 
 typedef enum
@@ -81,22 +81,17 @@ typedef struct
 {
     QueueHandle_t hqueue;
     TaskHandle_t  htask;
-    TimerHandle_t htimer;
     led_info_t	  info[NUMBER_OF_LEDS]; // use led_t to reference
 } ao_led_handle_t;
 
 /********************** external data declaration ****************************/
-extern ao_led_handle_t ao_led_red;
-extern ao_led_handle_t ao_led_green;
-extern ao_led_handle_t ao_led_blue;
+extern ao_led_handle_t ao_led;
 
 /********************** external functions declaration ***********************/
 
 bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg);
 
-void ao_leds_init(ao_led_handle_t* hao_led_red,
-		          ao_led_handle_t* hao_led_green,
-				  ao_led_handle_t* hao_led_blue);
+void ao_leds_init(ao_led_handle_t* hao_led);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
