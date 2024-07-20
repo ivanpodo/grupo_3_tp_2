@@ -89,7 +89,7 @@ static void ao_task_(void *argument)
 {
   ao_led_handle_t *hao = (ao_led_handle_t *)argument;
 
-  LOGGER_INFO("AO LED started")
+  LOGGER_INFO("AO LED \t- Task created");
 
   while (true)
   {
@@ -105,8 +105,11 @@ static void ao_task_(void *argument)
 		switch (msg.type)
 		{
 		case AO_LED_MESSAGE_ON:
+			LOGGER_INFO("AO LED \t- Receive AO_LED_MESSAGE_ON message");
+			LOGGER_INFO("AO LED \t- LED %s ON", hao->info[msg.colour].colour);
 			HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_SET);
 			vTaskDelay(LED_ON_PERIOD_TICKS_);
+			LOGGER_INFO("AO LED \t- LED %s OFF", hao->info[msg.colour].colour);
 			HAL_GPIO_WritePin(hao->info[msg.colour].port, hao->info[msg.colour].pin, GPIO_PIN_RESET);
 			break;
 
@@ -115,28 +118,17 @@ static void ao_task_(void *argument)
 		case AO_LED_MESSAGE__N:
 		
 		default:
-			LOGGER_INFO("AO LED - bad ao message");
+			LOGGER_INFO("AO LED \t- ERROR - Bad message");
 			break;
 		}
     }
 
-	LOGGER_INFO("AO LED - releasing memory");
+	LOGGER_INFO("AO LED \t- Releasing memory");
 
 	ao_led_finish_(hao);
-	/* hacemos? bool ao_running = false */
 	
-	/*
-	 * librar queue
-	 * asignar null al ptr
-	 * */
-//	vQueueDelete(hao->hqueue);
-//	hao->hqueue = NULL;
-//
-//	hao->htask = NULL;
-//	ao_running = false;
-//	vTaskDelete(NULL);
+	/* This won't be executed */
 
-	/* No se ejecuta*/
   }
 }
 
@@ -144,11 +136,7 @@ static void ao_task_(void *argument)
 
 bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg)
 {
-	/* (verificar si )el ao esta corriendo
-	 * crear queue, reasignar puntero
-	 * enviar evento a la cola
-	 * crear tarea, reasignar puntero
-	 * */
+
 	if(false == ao_running)
 	{
 		ao_led_init_(hao_led);
@@ -156,11 +144,6 @@ bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg)
 
 	return (pdPASS == xQueueSend(hao_led->hqueue, (void*)&msg, (TickType_t)0U));
 }
-
-/*
- * Hacemos init o no hace falta? porque si vamos a crear y destruir queue y task,
- * no es requerido. Podemos utilizarlo en 'ao_led_send()
- */
 
 static void ao_led_init_(ao_led_handle_t* hao_led)
 {

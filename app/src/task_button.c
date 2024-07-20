@@ -134,24 +134,24 @@ void task_button(void* argument)
 
       case BUTTON_TYPE_PULSE:
     	evt = AO_UI_MESSAGE_PULSE;
-    	LOGGER_INFO("BUTTON\t- send AO_UI_MESSAGE_PULSE to ui");
+    	LOGGER_INFO("BUTTON\t- Send AO_UI_MESSAGE_PULSE to ui");
     	ao_ui_send(&ao_ui, evt);
 		break;
 
       case BUTTON_TYPE_SHORT:
     	evt = AO_UI_MESSAGE_SHORT;
-    	LOGGER_INFO("BUTTON\t- send AO_UI_MESSAGE_SHORT to ui");
+    	LOGGER_INFO("BUTTON\t- Send AO_UI_MESSAGE_SHORT to ui");
     	ao_ui_send(&ao_ui, evt);
         break;
 
       case BUTTON_TYPE_LONG:
     	evt = AO_UI_MESSAGE_LONG;
-    	LOGGER_INFO("BUTTON\t- send AO_UI_MESSAGE_LONG to ui");
+    	LOGGER_INFO("BUTTON\t- Send AO_UI_MESSAGE_LONG to ui");
     	ao_ui_send(&ao_ui, evt);
         break;
 
       default:
-        LOGGER_INFO("BUTTON\t- ERROR - bad button type");
+        LOGGER_INFO("BUTTON\t- ERROR - Bad button type");
         break;
     }
 

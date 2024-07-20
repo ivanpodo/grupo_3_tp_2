@@ -75,10 +75,7 @@ void app_init(void)
 
   configASSERT(pdPASS == status);
 
-  // Leds init
-  // ao_leds_init(&ao_led); // leer comentario ao_led.c::135
-
-  // UI init
+  // Init UI
   ao_ui_init(&ao_ui);
 
   LOGGER_INFO("Application init ok");

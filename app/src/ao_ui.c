@@ -73,35 +73,35 @@ static void ao_task_(void *argument)
 {
 	ao_ui_handle_t *hao_ui = (ao_ui_handle_t *)argument;
 
-	LOGGER_INFO("AO UI started");
+	LOGGER_INFO("AO UI \t- Started");
 
 	while (true)
 	{
 		ao_ui_message_t evt;
 
-		LOGGER_INFO("UI\t- Waiting event");
+		LOGGER_INFO("AO UI\t- Waiting event");
 
 		if(pdPASS == xQueueReceive(hao_ui->hqueue, &evt, portMAX_DELAY))
 		{
 			switch(evt)
 			{
 				case AO_UI_MESSAGE_PULSE:
-					LOGGER_INFO("UI\t- send AO_LED_MESSAGE_ON to led red");
+					LOGGER_INFO("AO UI\t- Send AO_LED_MESSAGE_ON to led red");
 					send_led_on_(RED);
 					break;
 
 				case AO_UI_MESSAGE_SHORT:
-					LOGGER_INFO("UI\t- send AO_LED_MESSAGE_ON to led green");
+					LOGGER_INFO("AO UI\t- Send AO_LED_MESSAGE_ON to led green");
 					send_led_on_(GREEN);
 					break;
 
 				case AO_UI_MESSAGE_LONG:
-					LOGGER_INFO("UI\t- send AO_LED_MESSAGE_ON to led blue");
+					LOGGER_INFO("AO UI\t- Send AO_LED_MESSAGE_ON to led blue");
 					send_led_on_(BLUE);
 					break;
 
 				default:
-					LOGGER_LOG("UI\t- ERROR - bad ui message");
+					LOGGER_LOG("AO UI\t- ERROR - Bad message");
 					break;
 			}
 		}
