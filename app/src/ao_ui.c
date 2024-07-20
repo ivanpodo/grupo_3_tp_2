@@ -53,16 +53,20 @@
 ao_ui_handle_t ao_ui;
 
 /********************** internal functions declaration ***********************/
-
+static void send_led_on_(led_colour_t led_colour);
 /********************** internal data definition *****************************/
 
 /********************** external data definition *****************************/
-extern ao_led_handle_t ao_led_red;
-extern ao_led_handle_t ao_led_green;
-extern ao_led_handle_t ao_led_blue;
+extern ao_led_handle_t ao_led;
 
 /********************** internal functions definition ************************/
-
+static void send_led_on_(led_colour_t led_colour)
+{
+	ao_led_message_t sendEvt;
+	sendEvt.type = AO_LED_MESSAGE_ON;
+	sendEvt.colour = led_colour;
+	(void)ao_led_send(&ao_led, sendEvt);
+}
 /********************** external functions definition ************************/
 
 static void ao_task_(void *argument)
@@ -83,16 +87,19 @@ static void ao_task_(void *argument)
 			{
 				case AO_UI_MESSAGE_PULSE:
 					LOGGER_INFO("UI\t- send AO_LED_MESSAGE_ON to led red");
-					ao_led_send(&ao_led_red, AO_LED_MESSAGE_ON);
+					send_led_on_(RED);
 					break;
+
 				case AO_UI_MESSAGE_SHORT:
 					LOGGER_INFO("UI\t- send AO_LED_MESSAGE_ON to led green");
-					ao_led_send(&ao_led_green, AO_LED_MESSAGE_ON);
+					send_led_on_(GREEN);
 					break;
+
 				case AO_UI_MESSAGE_LONG:
 					LOGGER_INFO("UI\t- send AO_LED_MESSAGE_ON to led blue");
-					ao_led_send(&ao_led_blue, AO_LED_MESSAGE_ON);
+					send_led_on_(BLUE);
 					break;
+
 				default:
 					LOGGER_LOG("UI\t- ERROR - bad ui message");
 					break;

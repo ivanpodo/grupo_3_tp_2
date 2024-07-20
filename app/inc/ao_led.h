@@ -51,31 +51,31 @@ extern "C" {
 /********************** typedef **********************************************/
 typedef enum
 {
-  AO_LED_MESSAGE_ON,
-  AO_LED_MESSAGE_OFF,
-  AO_LED_MESSAGE__N,
+	AO_LED_MESSAGE_ON,
+  	AO_LED_MESSAGE_OFF,
+  	AO_LED_MESSAGE__N,
 } ao_led_msg_type_t;
+
+typedef enum
+{
+	RED   = 0U,
+  	GREEN,
+  	BLUE
+} led_colour_t;
 
 typedef struct 
 {
-  ao_led_msg_type_t type;
-  led_colour_t      colour;
+	ao_led_msg_type_t type;
+  	led_colour_t      colour;
 } ao_led_message_t;
 
 typedef struct
 {
 	GPIO_TypeDef  *port;
-	uint16_t 	    pin;
-	GPIO_PinState state;
-	char 		      colour[10];
+	uint16_t 	   pin;
+	GPIO_PinState  state;
+	char 		   colour[10];
 } led_info_t;
-
-typedef enum
-{
-  RED   = 0U,
-  GREEN,
-  BLUE
-} led_colour_t;
 
 typedef struct
 {
