@@ -50,7 +50,7 @@
 /********************** macros and definitions *******************************/
 #define QUEUE_AO_LED_LENGTH_            (5)
 #define QUEUE_AO_LED_ITEM_SIZE_         (sizeof(ao_led_message_t))
-#define LED_ON_PERIOD_TICKS_			(TickType_t)(500U / portTICK_PERIOD_MS)
+#define LED_ON_PERIOD_TICKS_			(TickType_t)(1000U / portTICK_PERIOD_MS)
 
 #define WAIT_TIME   0U
 
