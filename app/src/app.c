@@ -55,9 +55,6 @@
 /********************** internal data definition *****************************/
 
 /********************** external data declaration *****************************/
-
-extern ao_led_handle_t ao_led;
-
 extern ao_ui_handle_t  ao_ui;
 
 /********************** external functions definition ************************/

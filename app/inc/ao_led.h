@@ -91,7 +91,7 @@ extern ao_led_handle_t ao_led;
 
 bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg);
 
-void ao_leds_init(ao_led_handle_t* hao_led);
+//oid ao_led_init(ao_led_handle_t* hao_led);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus

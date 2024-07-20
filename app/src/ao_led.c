@@ -75,8 +75,11 @@ ao_led_handle_t ao_led =
 				};
 
 /********************** internal functions declaration ***********************/
+static void ao_led_init_(ao_led_handle_t* hao_led);
+static void ao_led_finish_(ao_led_handle_t* hao_led);
 
 /********************** internal data definition *****************************/
+static bool ao_running = false;
 
 /********************** external data definition *****************************/
 
@@ -95,6 +98,7 @@ static void ao_task_(void *argument)
     LOGGER_INFO("AO LED \t- Waiting event");
 
 	/* hacemos? bool ao_running = true */
+    ao_running = true;
 
     while (pdPASS == xQueueReceive(hao->hqueue, &msg, (TickType_t)0U))
     {
@@ -118,14 +122,19 @@ static void ao_task_(void *argument)
 
 	LOGGER_INFO("AO LED - releasing memory");
 
+	ao_led_finish_(hao);
 	/* hacemos? bool ao_running = false */
 	
 	/*
 	 * librar queue
 	 * asignar null al ptr
 	 * */
-
-	vTaskDelete(NULL);
+//	vQueueDelete(hao->hqueue);
+//	hao->hqueue = NULL;
+//
+//	hao->htask = NULL;
+//	ao_running = false;
+//	vTaskDelete(NULL);
 
 	/* No se ejecuta*/
   }
@@ -140,7 +149,12 @@ bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg)
 	 * enviar evento a la cola
 	 * crear tarea, reasignar puntero
 	 * */
-  return (pdPASS == xQueueSend(hao_led->hqueue, (void*)&msg, (TickType_t)0U));
+	if(false == ao_running)
+	{
+		ao_led_init_(hao_led);
+	}
+
+	return (pdPASS == xQueueSend(hao_led->hqueue, (void*)&msg, (TickType_t)0U));
 }
 
 /*
@@ -148,7 +162,7 @@ bool ao_led_send(ao_led_handle_t* hao_led, ao_led_message_t msg)
  * no es requerido. Podemos utilizarlo en 'ao_led_send()
  */
 
-void ao_leds_init(ao_led_handle_t* hao_led)
+static void ao_led_init_(ao_led_handle_t* hao_led)
 {
   // Queues
   hao_led->hqueue = xQueueCreate(QUEUE_AO_LED_LENGTH_, QUEUE_AO_LED_ITEM_SIZE_);
@@ -167,6 +181,19 @@ void ao_leds_init(ao_led_handle_t* hao_led)
 		  );
 
   configASSERT(pdPASS == status);
+
+  ao_running = true;
+}
+
+/*
+ * This function will be excecuted up to vTaskDelete.
+ */
+static void ao_led_finish_(ao_led_handle_t* hao_led)
+{
+	vQueueDelete(hao_led->hqueue);
+	ao_running = false;
+	vTaskDelete(hao_led->htask);
+	// this won't be executed!
 }
 
 /********************** end of file ******************************************/
